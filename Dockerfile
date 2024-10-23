@@ -1,8 +1,18 @@
 FROM python:3.8
 
 ENV PROTOBUF_VERSION=3.19.4
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV LANGUAGE=C.UTF-8
+
+ARG uid
+ARG username
+ARG useremail
+
 # cd whylogs
-# docker build -t whylogs -f Dockerfile .
+# docker build -t whylogs --build-arg uid=$UID --build-arg username="Jane Smith" --build-arg useremail=jsmith@isp.com -f Dockerfile .
 # docker run --rm -it -p 8080:8888 -v /working/directory:/workspace whylogs
 
 RUN mkdir /workspace
@@ -12,7 +22,7 @@ RUN apt-get update && \
     apt-get install git -y && \
     apt-get install awscli -y && \
     apt-get install sudo -y && \
-    adduser --quiet --disabled-password --gecos "" whyuser && \
+    adduser --quiet --disabled-password --gecos "" --uid ${uid} --gid ${uid} whyuser && \
     adduser whyuser sudo && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
@@ -39,6 +49,9 @@ RUN apt-get update && apt-get install -y less emacs vim
 RUN pip install --root-user-action ignore ruff
 
 USER whyuser
+
+RUN git config --global user.name "${username}" && \
+    git config --global user.email ${useremail}
 
 WORKDIR /home/whyuser
 RUN curl -sSL https://install.python-poetry.org | python3 - --version 1.6.1 && \
