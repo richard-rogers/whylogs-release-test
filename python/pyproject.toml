@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "whylogs-release-rest"
+name = "whylogs-release-test"
 version = "1.5.0"
 description = "Profile and monitor your ML data pipeline end-to-end"
 authors = ["WhyLabs.ai <support@whylabs.ai>"]
