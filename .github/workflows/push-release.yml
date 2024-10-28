@@ -63,7 +63,7 @@ jobs:
         run: |
           make clean
           make dist
-          poetry run twine upload dist/*
+          poetry run twine upload --repository testpypi dist/*
 
   bump_mainline:
     runs-on: ubuntu-latest
