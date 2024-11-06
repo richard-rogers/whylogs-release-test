@@ -1,0 +1,343 @@
+:py:mod:`whylogs`
+=================
+
+.. py:module:: whylogs
+
+.. autoapi-nested-parse::
+
+   whylogs is an open source library for logging any kind of data. With whylogs, users are able to generate summaries
+   of their datasets (called whylogs profiles) which they can use to:
+
+   * Track changes in their dataset
+   * Create data constraints to know whether their data looks they way it should
+   * Quickly visualize key summary statistics about their datasets
+
+   These three functionalities enable a variety of use cases for data scientists, machine learning engineers, and
+    data engineers:
+
+   * Detecting data drift (and resultant ML model performance degradation)
+   * Data quality validation
+   * Exploratory data analysis via data profiling
+   * Tracking data for ML experiments
+   * And many more...
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   api/index.rst
+   context/index.rst
+   core/index.rst
+   datasets/index.rst
+   experimental/index.rst
+   migration/index.rst
+   viz/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.ResultSet
+   whylogs.DatasetProfileView
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.log
+   whylogs.log_classification_metrics
+   whylogs.log_regression_metrics
+   whylogs.profiling
+   whylogs.read
+   whylogs.write
+   whylogs.init
+   whylogs.v0_to_v1_view
+   whylogs.package_version
+
+
+
+.. py:class:: ResultSet
+
+   Bases: :py:obj:`whylogs.api.writer.writer._Writable`, :py:obj:`abc.ABC`
+
+   A holder object for profiling results.
+
+   A whylogs.log call can result in more than one profile. This wrapper class
+   simplifies the navigation among these profiles.
+
+   Note that currently we only hold one profile but we're planning to add other
+   kinds of profiles such as segmented profiles here.
+
+   .. py:property:: metadata
+      :type: Optional[Dict[str, str]]
+
+
+   .. py:property:: count
+      :type: int
+
+
+   .. py:property:: performance_metrics
+      :type: Optional[whylogs.core.model_performance_metrics.ModelPerformanceMetrics]
+
+
+   .. py:method:: get_default_path() -> Optional[str]
+
+
+   .. py:method:: read(multi_profile_file: str) -> ResultSet
+      :staticmethod:
+
+
+   .. py:method:: reader(name: str = 'local') -> ResultSetReader
+      :staticmethod:
+
+
+   .. py:method:: view() -> Optional[whylogs.core.DatasetProfileView]
+      :abstractmethod:
+
+
+   .. py:method:: profile() -> Optional[whylogs.core.DatasetProfile]
+      :abstractmethod:
+
+
+   .. py:method:: get_writables() -> Optional[List[whylogs.api.writer.writer._Writable]]
+
+
+   .. py:method:: set_dataset_timestamp(dataset_timestamp: datetime.datetime) -> None
+
+
+   .. py:method:: add_model_performance_metrics(metrics: whylogs.core.model_performance_metrics.ModelPerformanceMetrics) -> None
+
+
+   .. py:method:: add_metric(name: str, metric: whylogs.core.metrics.metrics.Metric) -> None
+
+
+   .. py:method:: merge(other: ResultSet) -> ResultSet
+      :abstractmethod:
+
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+
+.. py:function:: log(obj: Any = None, *, pandas: Optional[whylogs.core.stubs.pd.DataFrame] = None, row: Optional[Dict[str, Any]] = None, schema: Optional[whylogs.core.DatasetSchema] = None, name: Optional[str] = None, multiple: Optional[Dict[str, Loggable]] = None, dataset_timestamp: Optional[datetime.datetime] = None, trace_id: Optional[str] = None, tags: Optional[List[str]] = None, segment_key_values: Optional[Dict[str, str]] = None, debug_event: Optional[Dict[str, Any]] = None) -> result_set.ResultSet
+
+
+.. py:function:: log_classification_metrics(data: whylogs.core.stubs.pd.DataFrame, target_column: str, prediction_column: str, score_column: Optional[str] = None, schema: Optional[whylogs.core.DatasetSchema] = None, log_full_data: bool = False, dataset_timestamp: Optional[datetime.datetime] = None) -> result_set.ResultSet
+
+   Function to track metrics based on validation data.
+   user may also pass the associated attribute names associated with
+   target, prediction, and/or score.
+
+   :param data: Dataframe with the data to log.
+   :type data: pd.DataFrame
+   :param target_column: Column name for the actual validated values.
+   :type target_column: str
+   :param prediction_column: Column name for the predicted values.
+   :type prediction_column: str
+   :param score_column: Associated scores for each inferred, all values set to 1 if None, by default None
+   :type score_column: Optional[str], optional
+   :param schema: Defines the schema for tracking metrics in whylogs, by default None
+   :type schema: Optional[DatasetSchema], optional
+   :param log_full_data: Whether to log the complete dataframe or not.
+                         If True, the complete DF will be logged in addition to the regression metrics.
+                         If False, only the calculated regression metrics will be logged.
+                         In a typical production use case, the ground truth might not be available
+                         at the time the remaining data is generated. In order to prevent double profiling the
+                         input features, consider leaving this as False. by default False.
+   :type log_full_data: bool, optional
+   :param dataset_timestamp: dataset's timestamp, by default None
+   :type dataset_timestamp: Optional[datetime], optional
+
+   .. rubric:: Examples
+
+   ::
+
+       data = {
+           "product": ["milk", "carrot", "cheese", "broccoli"],
+           "category": ["dairies", "vegetables", "dairies", "vegetables"],
+           "output_discount": [0, 0, 1, 1],
+           "output_prediction": [0, 0, 0, 1],
+       }
+       df = pd.DataFrame(data)
+
+       results = why.log_classification_metrics(
+               df,
+               target_column="output_discount",
+               prediction_column="output_prediction",
+               log_full_data=True,
+           )
+
+
+.. py:function:: log_regression_metrics(data: whylogs.core.stubs.pd.DataFrame, target_column: str, prediction_column: str, schema: Optional[whylogs.core.DatasetSchema] = None, log_full_data: bool = False, dataset_timestamp: Optional[datetime.datetime] = None) -> result_set.ResultSet
+
+   Function to track regression metrics based on validation data.
+   User may also pass the associated attribute names associated with target, prediction, and/or score.
+
+   :param data: Dataframe with the data to log.
+   :type data: pd.DataFrame
+   :param target_column: Column name for the target values.
+   :type target_column: str
+   :param prediction_column: Column name for the predicted values.
+   :type prediction_column: str
+   :param schema: Defines the schema for tracking metrics in whylogs, by default None
+   :type schema: Optional[DatasetSchema], optional
+   :param log_full_data: Whether to log the complete dataframe or not.
+                         If True, the complete DF will be logged in addition to the regression metrics.
+                         If False, only the calculated regression metrics will be logged.
+                         In a typical production use case, the ground truth might not be available
+                         at the time the remaining data is generated. In order to prevent double profiling the
+                         input features, consider leaving this as False. by default False.
+   :type log_full_data: bool, optional
+   :param dataset_timestamp: dataset's timestamp, by default None
+   :type dataset_timestamp: Optional[datetime], optional
+
+   :returns:
+   :rtype: ResultSet
+
+   .. rubric:: Examples
+
+   ::
+
+       import pandas as pd
+       import whylogs as why
+
+       df = pd.DataFrame({"target_temperature": [[10.5, 24.3, 15.6]], "predicted_temperature": [[9.12,26.42,13.12]]})
+       results = why.log_regression_metrics(df, target_column = "temperature", prediction_column = "prediction_temperature")
+
+
+.. py:function:: profiling(*, schema: Optional[whylogs.core.DatasetSchema] = None)
+
+
+.. py:function:: read(path: str) -> result_set.ResultSet
+
+
+.. py:function:: write(profile: whylogs.core.DatasetProfile, base_dir: Optional[str] = None, filename: Optional[str] = None) -> None
+
+
+.. py:function:: init(reinit: bool = False, allow_anonymous: bool = True, allow_local: bool = True, whylabs_api_key: Optional[str] = None, default_dataset_id: Optional[str] = None, config_path: Optional[str] = None, **kwargs: bool) -> whylogs.api.whylabs.session.session.Session
+
+   Set up authentication for this whylogs logging session. There are three modes that you can authentiate in.
+
+   1. WHYLABS: Data is sent to WhyLabs and is associated with a specific WhyLabs account. You can get a WhyLabs api
+       key from the WhyLabs Settings page after logging in.
+   2. WHYLABS_ANONYMOUS: Data is sent to WhyLabs, but no authentication happens and no WhyLabs account is required.
+       Sessions can be claimed into an account later on the WhyLabs website.
+   3. LOCAL: No authentication. No data is automatically sent anywhere. Use this if you want to explore profiles
+       locally or manually upload them somewhere.
+
+   Typically, you should only have to put `why.init()` with no arguments at the start of your application/notebook/script.
+   The arguments allow for some customization of the logic that determines the session type. Here is the priority order:
+
+   - If there is an api key directly supplied to init, then use it and authenticate session as WHYLABS.
+   - If there is an api key in the environment variable WHYLABS_API_KEY, then use it and authenticate session as WHYLABS.
+   - If there is an api key in the whylogs config file, then use it and authenticate session as WHYLABS.
+   - If we're in an interractive environment (notebook, colab, etc.) then prompt the user to pick a method explicitly.
+       The options are determined by the allow* argument values to init().
+   - If allow_anonymous is True, then authenticate session as WHYLABS_ANONYMOUS.
+   - If allow_local is True, then authenticate session as LOCAL.
+
+   :param reinit: Normally, init() is idempotent, so you can run it over and over again in a notebook without any issues, for example.
+                  If reinit=True then it will run the initialization logic again, so you can switch authentication methods without restarting.
+   :param allow_anonymous: If True, then the user will be able to choose WHYLABS_ANONYMOUS if no other authentication method is found.
+   :param allow_local: If True, then the user will be able to choose LOCAL if no other authentication method is found.
+   :param whylabs_api_key: A WhyLabs api key to use for uploading profiles. There are other ways that you can set an api key that don't
+                           require direclty embedding it in code, like setting WHYLABS_API_KEY env variable or supplying the api key interractively
+                           via the init() prompt in a notebook.
+   :param default_dataset_id: The default dataset id to use for uploading profiles. This is only used if the session is authenticated.
+                              This is a convenience argument so that you don't have to supply the dataset id every time you upload a profile if
+                              you're only using a single dataset id.
+   :param upload_on_log: If True, and the session type is WHYLOGS or WHYLOGS_ANONYMOUS, automaticall upload the profile to WhyLabs
+                         from the why.log() function. By default, uploading to WhyLabs requires an explicit write() call from a WhyLabsWriter.
+
+
+.. py:class:: DatasetProfileView(*, columns: Dict[str, whylogs.core.view.column_profile_view.ColumnProfileView], dataset_timestamp: Optional[datetime.datetime], creation_timestamp: Optional[datetime.datetime], metrics: Optional[Dict[str, Any]] = None, metadata: Optional[Dict[str, str]] = None)
+
+   Bases: :py:obj:`whylogs.api.writer.writer._Writable`
+
+   A Writable is an object that contains data to write to a file or files.
+   These might be temporary files intended to be passed on to another
+   consumer (e.g., WhyLabs servers) via a Writer.
+
+   .. py:property:: dataset_timestamp
+      :type: Optional[datetime.datetime]
+
+
+   .. py:property:: creation_timestamp
+      :type: Optional[datetime.datetime]
+
+
+   .. py:property:: metadata
+      :type: Dict[str, str]
+
+
+   .. py:property:: model_performance_metrics
+      :type: Any
+
+
+   .. py:method:: set_dataset_timestamp(dataset_timestamp: datetime.datetime) -> None
+
+
+   .. py:method:: add_model_performance_metrics(metric: Any) -> None
+
+
+   .. py:method:: merge(other: DatasetProfileView) -> DatasetProfileView
+
+
+   .. py:method:: get_column(col_name: str) -> Optional[whylogs.core.view.column_profile_view.ColumnProfileView]
+
+
+   .. py:method:: get_columns(col_names: Optional[List[str]] = None) -> Dict[str, whylogs.core.view.column_profile_view.ColumnProfileView]
+
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: serialize() -> bytes
+
+
+   .. py:method:: zero() -> DatasetProfileView
+      :classmethod:
+
+
+   .. py:method:: deserialize(data: bytes) -> DatasetProfileView
+      :classmethod:
+
+
+   .. py:method:: read(path: str) -> DatasetProfileView
+      :classmethod:
+
+
+   .. py:method:: to_pandas(column_metric: Optional[str] = None, cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> whylogs.core.stubs.pd.DataFrame
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+
+.. py:function:: v0_to_v1_view(msg: whylogs.core.proto.v0.DatasetProfileMessageV0, allow_partial: bool = False) -> whylogs.core.DatasetProfileView
+
+
+.. py:function:: package_version(package: str = __package__) -> str
+
+   Calculate version number based on pyproject.toml
+
+

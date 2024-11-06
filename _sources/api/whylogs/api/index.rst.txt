@@ -1,0 +1,223 @@
+:py:mod:`whylogs.api`
+=====================
+
+.. py:module:: whylogs.api
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   fugue/index.rst
+   logger/index.rst
+   reader/index.rst
+   store/index.rst
+   usage_stats/index.rst
+   whylabs/index.rst
+   writer/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   annotations/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.ResultSet
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.profiling
+   whylogs.api.log
+   whylogs.api.log_classification_metrics
+   whylogs.api.log_regression_metrics
+   whylogs.api.read
+   whylogs.api.reader
+   whylogs.api.write
+
+
+
+.. py:function:: profiling(*, schema: Optional[whylogs.core.DatasetSchema] = None)
+
+
+.. py:class:: ResultSet
+
+   Bases: :py:obj:`whylogs.api.writer.writer._Writable`, :py:obj:`abc.ABC`
+
+   A holder object for profiling results.
+
+   A whylogs.log call can result in more than one profile. This wrapper class
+   simplifies the navigation among these profiles.
+
+   Note that currently we only hold one profile but we're planning to add other
+   kinds of profiles such as segmented profiles here.
+
+   .. py:property:: metadata
+      :type: Optional[Dict[str, str]]
+
+
+   .. py:property:: count
+      :type: int
+
+
+   .. py:property:: performance_metrics
+      :type: Optional[whylogs.core.model_performance_metrics.ModelPerformanceMetrics]
+
+
+   .. py:method:: get_default_path() -> Optional[str]
+
+
+   .. py:method:: read(multi_profile_file: str) -> ResultSet
+      :staticmethod:
+
+
+   .. py:method:: reader(name: str = 'local') -> ResultSetReader
+      :staticmethod:
+
+
+   .. py:method:: view() -> Optional[whylogs.core.DatasetProfileView]
+      :abstractmethod:
+
+
+   .. py:method:: profile() -> Optional[whylogs.core.DatasetProfile]
+      :abstractmethod:
+
+
+   .. py:method:: get_writables() -> Optional[List[whylogs.api.writer.writer._Writable]]
+
+
+   .. py:method:: set_dataset_timestamp(dataset_timestamp: datetime.datetime) -> None
+
+
+   .. py:method:: add_model_performance_metrics(metrics: whylogs.core.model_performance_metrics.ModelPerformanceMetrics) -> None
+
+
+   .. py:method:: add_metric(name: str, metric: whylogs.core.metrics.metrics.Metric) -> None
+
+
+   .. py:method:: merge(other: ResultSet) -> ResultSet
+      :abstractmethod:
+
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+
+.. py:function:: log(obj: Any = None, *, pandas: Optional[whylogs.core.stubs.pd.DataFrame] = None, row: Optional[Dict[str, Any]] = None, schema: Optional[whylogs.core.DatasetSchema] = None, name: Optional[str] = None, multiple: Optional[Dict[str, Loggable]] = None, dataset_timestamp: Optional[datetime.datetime] = None, trace_id: Optional[str] = None, tags: Optional[List[str]] = None, segment_key_values: Optional[Dict[str, str]] = None, debug_event: Optional[Dict[str, Any]] = None) -> result_set.ResultSet
+
+
+.. py:function:: log_classification_metrics(data: whylogs.core.stubs.pd.DataFrame, target_column: str, prediction_column: str, score_column: Optional[str] = None, schema: Optional[whylogs.core.DatasetSchema] = None, log_full_data: bool = False, dataset_timestamp: Optional[datetime.datetime] = None) -> result_set.ResultSet
+
+   Function to track metrics based on validation data.
+   user may also pass the associated attribute names associated with
+   target, prediction, and/or score.
+
+   :param data: Dataframe with the data to log.
+   :type data: pd.DataFrame
+   :param target_column: Column name for the actual validated values.
+   :type target_column: str
+   :param prediction_column: Column name for the predicted values.
+   :type prediction_column: str
+   :param score_column: Associated scores for each inferred, all values set to 1 if None, by default None
+   :type score_column: Optional[str], optional
+   :param schema: Defines the schema for tracking metrics in whylogs, by default None
+   :type schema: Optional[DatasetSchema], optional
+   :param log_full_data: Whether to log the complete dataframe or not.
+                         If True, the complete DF will be logged in addition to the regression metrics.
+                         If False, only the calculated regression metrics will be logged.
+                         In a typical production use case, the ground truth might not be available
+                         at the time the remaining data is generated. In order to prevent double profiling the
+                         input features, consider leaving this as False. by default False.
+   :type log_full_data: bool, optional
+   :param dataset_timestamp: dataset's timestamp, by default None
+   :type dataset_timestamp: Optional[datetime], optional
+
+   .. rubric:: Examples
+
+   ::
+
+       data = {
+           "product": ["milk", "carrot", "cheese", "broccoli"],
+           "category": ["dairies", "vegetables", "dairies", "vegetables"],
+           "output_discount": [0, 0, 1, 1],
+           "output_prediction": [0, 0, 0, 1],
+       }
+       df = pd.DataFrame(data)
+
+       results = why.log_classification_metrics(
+               df,
+               target_column="output_discount",
+               prediction_column="output_prediction",
+               log_full_data=True,
+           )
+
+
+.. py:function:: log_regression_metrics(data: whylogs.core.stubs.pd.DataFrame, target_column: str, prediction_column: str, schema: Optional[whylogs.core.DatasetSchema] = None, log_full_data: bool = False, dataset_timestamp: Optional[datetime.datetime] = None) -> result_set.ResultSet
+
+   Function to track regression metrics based on validation data.
+   User may also pass the associated attribute names associated with target, prediction, and/or score.
+
+   :param data: Dataframe with the data to log.
+   :type data: pd.DataFrame
+   :param target_column: Column name for the target values.
+   :type target_column: str
+   :param prediction_column: Column name for the predicted values.
+   :type prediction_column: str
+   :param schema: Defines the schema for tracking metrics in whylogs, by default None
+   :type schema: Optional[DatasetSchema], optional
+   :param log_full_data: Whether to log the complete dataframe or not.
+                         If True, the complete DF will be logged in addition to the regression metrics.
+                         If False, only the calculated regression metrics will be logged.
+                         In a typical production use case, the ground truth might not be available
+                         at the time the remaining data is generated. In order to prevent double profiling the
+                         input features, consider leaving this as False. by default False.
+   :type log_full_data: bool, optional
+   :param dataset_timestamp: dataset's timestamp, by default None
+   :type dataset_timestamp: Optional[datetime], optional
+
+   :returns:
+   :rtype: ResultSet
+
+   .. rubric:: Examples
+
+   ::
+
+       import pandas as pd
+       import whylogs as why
+
+       df = pd.DataFrame({"target_temperature": [[10.5, 24.3, 15.6]], "predicted_temperature": [[9.12,26.42,13.12]]})
+       results = why.log_regression_metrics(df, target_column = "temperature", prediction_column = "prediction_temperature")
+
+
+.. py:function:: read(path: str) -> result_set.ResultSet
+
+
+.. py:function:: reader(name: str) -> result_set.ResultSetReader
+
+
+.. py:function:: write(profile: whylogs.core.DatasetProfile, base_dir: Optional[str] = None, filename: Optional[str] = None) -> None
+
+

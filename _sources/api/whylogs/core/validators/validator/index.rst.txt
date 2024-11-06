@@ -1,0 +1,61 @@
+:py:mod:`whylogs.core.validators.validator`
+===========================================
+
+.. py:module:: whylogs.core.validators.validator
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.validators.validator.Validator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.validators.validator.deepcopy_validators
+
+
+
+.. py:class:: Validator
+
+   Bases: :py:obj:`abc.ABC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:attribute:: name
+      :type: str
+
+      
+
+   .. py:attribute:: conditions
+      :type: Dict[str, Union[whylogs.core.metrics.condition_count_metric.Condition, Callable[[Any], bool]]]
+
+      
+
+   .. py:attribute:: actions
+      :type: List[Union[Callable[[str, str, Any], None], Callable[[str, str, Any, Optional[Any]], None]]]
+
+      
+
+   .. py:method:: columnar_validate(data: Any, identity_values: Optional[Any] = None) -> None
+      :abstractmethod:
+
+
+   .. py:method:: to_summary_dict() -> Dict[str, Any]
+      :abstractmethod:
+
+
+
+.. py:function:: deepcopy_validators(obj)
+
+

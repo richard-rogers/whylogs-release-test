@@ -1,0 +1,667 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "qBppzvTgd2ct"
+      },
+      "source": [
+        ">### 🚩 *Create a free WhyLabs account to get more value out of whylogs!*<br> \n",
+        ">*Did you know you can store, visualize, and monitor whylogs profiles with the [WhyLabs Observability Platform](https://whylabs.ai/whylogs-free-signup?utm_source=whylogs-Github&utm_medium=whylogs-example&utm_campaign=Condition_Validators)? Sign up for a [free WhyLabs account](https://whylabs.ai/whylogs-free-signup?utm_source=whylogs-Github&utm_medium=whylogs-example&utm_campaign=Condition_Validators) to leverage the power of whylogs and WhyLabs together!*"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "sd9_j1MMd2cy"
+      },
+      "source": [
+        "# Real-time Data Validation with Condition Validators"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Zr4QHNz8d2cy"
+      },
+      "source": [
+        "[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/whylabs/whylogs/blob/mainline/python/examples/advanced/Condition_Validators.ipynb)"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "XH7oA4hCd2cz"
+      },
+      "source": [
+        "With __Condition Validators__, the user is able to evaluate conditions on individual values on real-time scenarios. These checks are done while data is being logged, and can trigger one or multiple actions when these conditions fail to be met. With __Condition Validators__, you are able to define actions where an immediate response is required, such as emiting an alert to key stakeholders, logging specific failures or throwing exceptions. Validators are designed with flexibility in mind, so you are free to customize your actions as well as the conditions that trigger those actions.\n",
+        "\n",
+        "In this example, we will cover how to:\n",
+        "\n",
+        "- Define conditions for data validations\n",
+        "- Define actions to be triggered when conditions fail\n",
+        "- Assemble a Condition Validator with defined conditions and actions\n",
+        "- Bind validators to Columns\n",
+        "- Apply validators to your data\n",
+        "- Debugging failed conditions\n",
+        "\n",
+        "Showing the different types of conditions is NOT the focus of this example. If you wish to see the different types of conditions you can define, please refer to [Condition Count Metrics](https://whylogs.readthedocs.io/en/stable/examples/advanced/Condition_Count_Metrics.html).\n",
+        "\n",
+        "Unlike metrics, validators will not log properties into profiles. They are meant only to evaluate conditions and trigger actions while logging is under way.\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Installing whylogs and importing modules"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0mRequirement already satisfied: whylogs in /mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages (1.1.27)\n",
+            "Requirement already satisfied: whylogs-sketching>=3.4.1.dev3 in /mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages (from whylogs) (3.4.1.dev3)\n",
+            "Requirement already satisfied: typing-extensions>=3.10 in /mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages (from whylogs) (4.4.0)\n",
+            "Requirement already satisfied: protobuf>=3.19.4 in /mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages (from whylogs) (4.21.12)\n",
+            "\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -leach (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: Ignoring invalid distribution -hylabs-client (/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/lib/python3.8/site-packages)\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[33mWARNING: You are using pip version 22.0.4; however, version 23.0.1 is available.\n",
+            "You should consider upgrading via the '/mnt/c/Users/felip/Documents/Projects-WhyLabs/whylogs/python/.venv/bin/python -m pip install --upgrade pip' command.\u001b[0m\u001b[33m\n",
+            "\u001b[0mNote: you may need to restart the kernel to use updated packages.\n"
+          ]
+        }
+      ],
+      "source": [
+        "# Note: you may need to restart the kernel to use updated packages.\n",
+        "%pip install whylogs"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "PTTPMKPSd2cz"
+      },
+      "source": [
+        "## Use-case: Validating email and credit card columns"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "BFgUtX6hd2c0"
+      },
+      "source": [
+        "In this simple scenario, we want to make sure two things happen:\n",
+        "\n",
+        "- Single emails in the `emails` column (nothing else)\n",
+        "- No credit cards information in the `transcriptions` column\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "yYm8PFy2d2c0"
+      },
+      "source": [
+        "We'll use the following sample dataframe to evaluate on:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 2,
+      "metadata": {
+        "id": "LQ6jA3yud2c1"
+      },
+      "outputs": [],
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "text_data = {\n",
+        "    \"emails\": [\n",
+        "        \"my email is my_email_1989@gmail.com\",\n",
+        "        \"invalidEmail@xyz.toolong\",\n",
+        "        \"this.is.ok@hotmail.com\",\n",
+        "        \"not an email\",\n",
+        "    ],\n",
+        "    \"transcriptions\": [\n",
+        "        \"Bob's credit card number is 4000000000000\",\n",
+        "        \"Alice's credit card is XXXXXXXXXXXXX\",\n",
+        "        \"Hi, my name is Bob\",\n",
+        "        \"Hi, I'm Alice\",\n",
+        "    ],\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data=text_data)\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "bXmCv1tJd2c2"
+      },
+      "source": [
+        "## Defining the Conditions"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Sgn95I4Wd2c3"
+      },
+      "source": [
+        "Let's translate the mentioned conditions into regex expressions:\n",
+        "- A negation of a credit card pattern matching (\"No Credit Cards\")\n",
+        "- A Full Match for an email pattern matching:"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "hikF6MYtd2c3"
+      },
+      "source": [
+        "> Our conditions are usually expected to evaluate to `True`. When something goes wrong, the condition should evaluate to `False`, triggering a certain action in the process. This is why we negate the first condition (because matching the pattern is bad) and do a match for the second one (because not finding an email is bad)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 3,
+      "metadata": {
+        "id": "dQ9C9Scjd2c3"
+      },
+      "outputs": [],
+      "source": [
+        "from whylogs.core.relations import Not, Predicate\n",
+        "\n",
+        "X = Predicate()\n",
+        "\n",
+        "credit_card_conditions = {\"noCreditCard\": Not(X.matches(\".*4[0-9]{12}(?:[0-9]{3})?\"))}\n",
+        "\n",
+        "email_conditions = {\"hasEmail\": X.fullmatch(\"[\\w.]+[\\._]?[a-z0-9]+[@]\\w+[.]\\w{2,3}\")}"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "HeLNIJLUd2c4"
+      },
+      "source": [
+        "> Note: The regex expressions are for demonstrational purposes only. These expressions are not general - there will be emails and credit cards whose patterns will not be met by the expression."
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "zIdyzZXRd2c5"
+      },
+      "source": [
+        "## Defining the actions"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0uvqDSrBd2c5"
+      },
+      "source": [
+        "The action to be triggered when a contidion fails is created by simply defining a regular function.\n",
+        "\n",
+        "We should just remember to define the arguments: `validator_name`, `condition_name` and `value`. You can use these values to help with logging and debugging the failures."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 4,
+      "metadata": {
+        "id": "Z4u87r0rd2c5"
+      },
+      "outputs": [],
+      "source": [
+        "from typing import Any\n",
+        "\n",
+        "def do_something_important(validator_name, condition_name: str, value: Any):\n",
+        "    print(\"Validator: {}\\n    Condition name {} failed for value {}\".format(validator_name, condition_name, value))\n",
+        "    return\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "ct2zT6Hpd2c6"
+      },
+      "source": [
+        "## Creating the Validators"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pGAftPewd2c6"
+      },
+      "source": [
+        "To create a Condition Validator, we need a name, a set of conditions, and a list of actions.\n",
+        "\n",
+        "Let's make a Validator for the credit card column and another Validator for the email column. Each validator has a single condition to be evaluated, and also a single action.\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0T9PxyR1d2c7"
+      },
+      "source": [
+        "> Note that for a single validator, we could have multiple conditions defined and also multiple actions to be triggered."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 5,
+      "metadata": {
+        "id": "uWfp62Phd2c7"
+      },
+      "outputs": [],
+      "source": [
+        "from whylogs.core.validators import ConditionValidator\n",
+        "\n",
+        "\n",
+        "credit_card_validator = ConditionValidator(\n",
+        "    name=\"no_credit_cards\",\n",
+        "    conditions=credit_card_conditions,\n",
+        "    actions=[do_something_important],\n",
+        ")\n",
+        "\n",
+        "email_validator = ConditionValidator(\n",
+        "    name=\"has_emails\",\n",
+        "    conditions=email_conditions,\n",
+        "    actions=[do_something_important],\n",
+        ")\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "up1r_T6Ld2c7"
+      },
+      "source": [
+        "## Bind the Validators to specific Columns"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "p9qcjyzAd2c8"
+      },
+      "source": [
+        "Each validator instance should be mapped to a single column, but each column can have multiple validators attached to it.\n",
+        "\n",
+        "Assigning an instance to multiple columns will lead to an undefined behavior.\n",
+        "\n",
+        "In our case, we have only one validator for each of the columns:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 6,
+      "metadata": {
+        "id": "2ngk8hGCd2c8"
+      },
+      "outputs": [],
+      "source": [
+        "validators = {\n",
+        "    \"emails\": [email_validator],\n",
+        "    \"transcriptions\": [credit_card_validator]}"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "NvfKV7Pqd2c8"
+      },
+      "source": [
+        "## Apply Validators to Data"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0BCSH-l0d2c9"
+      },
+      "source": [
+        "Now, we only need to pass our set of validators to our DatasetSchema.\n",
+        "\n",
+        "This will make the validators to be applied while data is being logged. The actions will be triggered immediately when the conditions fail, and not only when the logging is done."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 7,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "yzfke2a-d2c9",
+        "outputId": "bd6661aa-aa0b-469b-b4a6-6492db954acd"
+      },
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value my email is my_email_1989@gmail.com\n",
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value invalidEmail@xyz.toolong\n",
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value not an email\n",
+            "Validator: no_credit_cards\n",
+            "    Condition name noCreditCard failed for value Bob's credit card number is 4000000000000\n"
+          ]
+        }
+      ],
+      "source": [
+        "from whylogs.core.schema import DatasetSchema\n",
+        "import whylogs as why\n",
+        "\n",
+        "schema = DatasetSchema(validators=validators)\n",
+        "profile = why.log(df, schema=schema).profile()"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pV3GI9azd2c-"
+      },
+      "source": [
+        "We can see in the results above that our `has_emails` validator failed three times. The first time, the value has extra text, the second has an invalid email address and the third does not contain an email.\n",
+        "\n",
+        "The `no_credit_cards` validator failed once, because the pattern was found once."
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "8-VVhQKBd2c_"
+      },
+      "source": [
+        "We can also access a simple summary with the total number of evaluations, the number of total failures and the number of failures per condition present in the validator:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 8,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "mV33aJUYd2c_",
+        "outputId": "f64cf6e4-4224-4fe6-cc46-1c05121fcbb2"
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "{'total_evaluations': 4, 'hasEmail': 3}"
+            ]
+          },
+          "execution_count": 8,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "source": [
+        "email_validator.to_summary_dict()"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 9,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "YdhYweCZd2c_",
+        "outputId": "3ab7bb42-44ab-4fb2-9604-b5d9b51857e7"
+      },
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "{'total_evaluations': 4, 'noCreditCard': 1}"
+            ]
+          },
+          "execution_count": 9,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "source": [
+        "credit_card_validator.to_summary_dict()"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Debugging Failed Conditions"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "The validator retain contextual information about the data that failed the conditions. You can access it by using the `get_samples` method of the validator."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 10,
+      "metadata": {},
+      "outputs": [
+        {
+          "data": {
+            "text/plain": [
+              "['my email is my_email_1989@gmail.com',\n",
+              " 'invalidEmail@xyz.toolong',\n",
+              " 'not an email']"
+            ]
+          },
+          "execution_count": 10,
+          "metadata": {},
+          "output_type": "execute_result"
+        }
+      ],
+      "source": [
+        "email_validator.get_samples()"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Note that the samples are stored in the validator instance, but they are not logged into the profile."
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "By default, the `ConditionValidator` will sample 10 rows that failed the condition by using a [Reservoir Sampler](https://en.wikipedia.org/wiki/Reservoir_sampling). You can change this by setting the `validator_sample_size` in the `ConditionValidatorConfig`.\n",
+        "\n",
+        "If you want, you can also assign an `identity_column` to the validator. You can use the identity column for two purposes:\n",
+        "- Make the identity row visible to your action by specifying it as a fourth argument in your action function. That way, your callable will also receive the value of the identity column for the row that failed the condition.\n",
+        "- Sample the ids of the rows that failed the condition.\n",
+        "\n",
+        "Let's see how this works. First,let's create a dataframe again. This time, we have a column that contains the ids for each row:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 11,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "text_data = {\n",
+        "    \"emails\": [\n",
+        "        \"my email is my_email_1989@gmail.com\",\n",
+        "        \"invalidEmail@xyz.toolong\",\n",
+        "        \"this.is.ok@hotmail.com\",\n",
+        "        \"not an email\",\n",
+        "    ],\n",
+        "    \"ids\": [\n",
+        "        \"id_0\",\n",
+        "        \"id_1\",\n",
+        "        \"id_2\",\n",
+        "        \"id_3\",\n",
+        "    ],\n",
+        "}\n",
+        "\n",
+        "df = pd.DataFrame(data=text_data)"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We will only use the email validator for this example.\n",
+        "\n",
+        "Notice that now we are defining a column that contains our ids. We want to access those values in both our actions and in our sampling.\n"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Let's define the validator again, but now with an identity column.\n",
+        "\n",
+        "In the following block, there are two main differences:\n",
+        "\n",
+        "- we're specifying a fourth argument in our action function. This argument will receive the value of the identity column for the row that failed the condition.\n",
+        "- we're setting `enable_sampling=True` when instantiating the validator. This is by default True, but we're setting it explicitly for demonstration purposes. If you set this to `False`, the validator won't sample the failed rows.\n",
+        "- we're setting our sample size to 2. It's a small value, but we're picking a value that is smaller than the actual number of failed conditions. This way, we make it clear that they are indeed samples, and it's not the complete set of failures."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 12,
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "from typing import Any\n",
+        "from whylogs.core.validators import ConditionValidator\n",
+        "\n",
+        "def do_something_important(validator_name, condition_name: str, value: Any, row_id: Any = None):\n",
+        "    print(\"Validator: {}\\n    Condition name {} failed for value {} and row id {}\".format(validator_name, condition_name, value, row_id))\n",
+        "    return\n",
+        "\n",
+        "\n",
+        "email_validator = ConditionValidator(\n",
+        "    name=\"has_emails\",\n",
+        "    conditions=email_conditions,\n",
+        "    actions=[do_something_important],\n",
+        "    enable_sampling=True,\n",
+        "    sample_size=2,\n",
+        ")\n",
+        "validators = {\n",
+        "    \"emails\": [email_validator],\n",
+        "}\n"
+      ]
+    },
+    {
+      "attachments": {},
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Now, we need to let whylogs know which column is our identity column. We do this by setting the `identity_column` in our `MetricConfig`:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 13,
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value my email is my_email_1989@gmail.com and row id id_0\n",
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value invalidEmail@xyz.toolong and row id id_1\n",
+            "Validator: has_emails\n",
+            "    Condition name hasEmail failed for value not an email and row id id_3\n",
+            "Samples of failed rows: ['id_3', 'id_0']\n"
+          ]
+        }
+      ],
+      "source": [
+        "from whylogs.core.schema import DatasetSchema\n",
+        "import whylogs as why\n",
+        "from whylogs.core.metrics import MetricConfig\n",
+        "condition_count_config = MetricConfig(identity_column=\"ids\")\n",
+        "\n",
+        "schema = DatasetSchema(validators=validators,default_configs=condition_count_config)\n",
+        "profile = why.log(df, schema=schema).profile()\n",
+        "\n",
+        "samples = email_validator.get_samples()\n",
+        "print(f\"Samples of failed rows: {samples}\")"
+      ]
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "display_name": ".venv",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.8.10"
+    },
+    "orig_nbformat": 4,
+    "vscode": {
+      "interpreter": {
+        "hash": "5dd5901cadfd4b29c2aaf95ecd29c0c3b10829ad94dcfe59437dbee391154aea"
+      }
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}

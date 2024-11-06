@@ -1,0 +1,367 @@
+:py:mod:`whylogs.api.whylabs.session.config`
+============================================
+
+.. py:module:: whylogs.api.whylabs.session.config
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.whylabs.session.config.EnvVariableName
+   whylogs.api.whylabs.session.config.ConfigVariableName
+   whylogs.api.whylabs.session.config.InitConfig
+   whylogs.api.whylabs.session.config.SessionConfig
+   whylogs.api.whylabs.session.config.ConfigFile
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.whylabs.session.config.INIT_DOCS
+
+
+.. py:data:: INIT_DOCS
+   :value: 'https://docs.whylabs.ai/docs/whylabs-whylogs-init'
+
+   
+
+.. py:exception:: InitException
+
+   Bases: :py:obj:`Exception`
+
+   Common base class for all non-exit exceptions.
+
+   .. py:class:: args
+
+
+   .. py:method:: with_traceback()
+
+      Exception.with_traceback(tb) --
+      set self.__traceback__ to tb and return self.
+
+
+
+.. py:class:: EnvVariableName
+
+   Bases: :py:obj:`enum.Enum`
+
+   Generic enumeration.
+
+   Derive from this class to define new enumerations.
+
+   .. py:attribute:: WHYLABS_API_KEY
+      :value: 'WHYLABS_API_KEY'
+
+      
+
+   .. py:attribute:: WHYLABS_SESSION_ID
+      :value: 'WHYLABS_SESSION_ID'
+
+      
+
+   .. py:attribute:: WHYLABS_ORG_ID
+      :value: 'WHYLABS_DEFAULT_ORG_ID'
+
+      
+
+   .. py:attribute:: WHYLABS_DEFAULT_DATASET_ID
+      :value: 'WHYLABS_DEFAULT_DATASET_ID'
+
+      
+
+   .. py:attribute:: WHYLOGS_CONFIG_PATH
+      :value: 'WHYLOGS_CONFIG_PATH'
+
+      
+
+   .. py:attribute:: WHYLABS_API_ENDPOINT
+      :value: 'WHYLABS_API_ENDPOINT'
+
+      
+
+   .. py:attribute:: WHYLABS_REFERENCE_PROFILE_NAME
+      :value: 'WHYLABS_REFERENCE_PROFILE_NAME'
+
+      
+
+   .. py:attribute:: WHYLABS_PRIVATE_API_ENDPOINT
+      :value: 'WHYLABS_PRIVATE_API_ENDPOINT'
+
+      
+
+   .. py:attribute:: WHYLABS_PRIVATE_S3_ENDPOINT
+      :value: 'WHYLABS_PRIVATE_S3_ENDPOINT'
+
+      
+
+   .. py:attribute:: HTTP_PROXY
+      :value: 'HTTP_PROXY'
+
+      
+
+   .. py:attribute:: HTTPS_PROXY
+      :value: 'HTTPS_PROXY'
+
+      
+
+   .. py:method:: name()
+
+      The name of the Enum member.
+
+
+   .. py:method:: value()
+
+      The value of the Enum member.
+
+
+
+.. py:class:: ConfigVariableName
+
+   Bases: :py:obj:`enum.Enum`
+
+   Generic enumeration.
+
+   Derive from this class to define new enumerations.
+
+   .. py:attribute:: API_KEY
+      :value: 'api_key'
+
+      
+
+   .. py:attribute:: ORG_ID
+      :value: 'org_id'
+
+      
+
+   .. py:attribute:: SESSION_ID
+      :value: 'session_id'
+
+      
+
+   .. py:attribute:: WHYLABS_API_ENDPOINT
+      :value: 'whylabs_api_endpoint'
+
+      
+
+   .. py:attribute:: USER_GUID
+      :value: 'user_guid'
+
+      
+
+   .. py:attribute:: DEFAULT_DATASET_ID
+      :value: 'default_dataset_id'
+
+      
+
+   .. py:attribute:: WHYLABS_REFERENCE_PROFILE_NAME
+      :value: 'whylabs_reference_profile_name'
+
+      
+
+   .. py:attribute:: WHYLABS_PRIVATE_API_ENDPOINT
+      :value: 'whylabs_private_api_endpoint'
+
+      
+
+   .. py:attribute:: WHYLABS_PRIVATE_S3_ENDPOINT
+      :value: 'whylabs_private_s3_endpoint'
+
+      
+
+   .. py:attribute:: HTTP_PROXY
+      :value: 'http_proxy'
+
+      
+
+   .. py:attribute:: HTTPS_PROXY
+      :value: 'https_proxy'
+
+      
+
+   .. py:method:: name()
+
+      The name of the Enum member.
+
+
+   .. py:method:: value()
+
+      The value of the Enum member.
+
+
+
+.. py:class:: InitConfig
+
+   .. py:attribute:: whylabs_api_key
+      :type: Optional[str]
+
+      
+
+   .. py:attribute:: allow_anonymous
+      :type: bool
+      :value: True
+
+      
+
+   .. py:attribute:: allow_local
+      :type: bool
+      :value: True
+
+      
+
+   .. py:attribute:: default_dataset_id
+      :type: Optional[str]
+
+      
+
+   .. py:attribute:: config_path
+      :type: Optional[str]
+
+      
+
+   .. py:attribute:: force_local
+      :type: Optional[bool]
+
+      
+
+   .. py:attribute:: upload_on_log
+      :type: Optional[bool]
+
+      
+
+
+.. py:class:: SessionConfig(init_config: Optional[InitConfig] = None)
+
+   .. py:method:: get_session_type() -> whylogs.api.whylabs.session.session_types.SessionType
+
+
+   .. py:method:: get_https_proxy() -> Optional[str]
+
+
+   .. py:method:: set_https_proxy(proxy: str) -> None
+
+
+   .. py:method:: get_http_proxy() -> Optional[str]
+
+
+   .. py:method:: set_http_proxy(proxy: str) -> None
+
+
+   .. py:method:: get_whylabs_private_api_endpoint() -> Optional[str]
+
+
+   .. py:method:: set_whylabs_private_api_endpoint(endpoint: str) -> None
+
+
+   .. py:method:: get_whylabs_private_s3_endpoint() -> Optional[str]
+
+
+   .. py:method:: set_whylabs_private_s3_endpoint(endpoint: str) -> None
+
+
+   .. py:method:: get_whylabs_refernce_profile_name() -> Optional[str]
+
+
+   .. py:method:: set_whylabs_refernce_profile_name(name: str) -> None
+
+
+   .. py:method:: get_whylabs_endpoint() -> str
+
+
+   .. py:method:: set_whylabs_endpoint(endpoint: str) -> None
+
+
+   .. py:method:: get_config_file_path() -> pathlib.Path
+
+
+   .. py:method:: get_default_dataset_id() -> Optional[str]
+
+
+   .. py:method:: require_default_dataset_id() -> str
+
+
+   .. py:method:: set_default_dataset_id(dataset_id: str) -> None
+
+
+   .. py:method:: get_org_id() -> Optional[str]
+
+
+   .. py:method:: require_org_id() -> str
+
+
+   .. py:method:: set_org_id(org_id: str) -> None
+
+
+   .. py:method:: get_api_key() -> Optional[str]
+
+
+   .. py:method:: get_env_api_key() -> Optional[str]
+
+
+   .. py:method:: require_api_key() -> str
+
+
+   .. py:method:: set_api_key(api_key: str) -> None
+
+
+   .. py:method:: get_user_guid() -> Optional[str]
+
+
+   .. py:method:: set_user_guid(user_guid: str) -> None
+
+
+   .. py:method:: get_session_id() -> Optional[str]
+
+
+   .. py:method:: set_session_id(sessionId: str) -> None
+
+
+   .. py:method:: remove_session_id() -> None
+
+
+   .. py:method:: reset_config() -> None
+
+
+   .. py:method:: notify_session_type() -> None
+
+
+
+.. py:class:: ConfigFile
+
+   .. py:method:: create_parser(config_path: pathlib.Path) -> configparser.ConfigParser
+      :staticmethod:
+
+
+   .. py:method:: get_variable_from_input(variable_name: ConfigVariableName) -> str
+      :staticmethod:
+
+
+   .. py:method:: get_variable_from_getpass(variable_name: ConfigVariableName) -> str
+      :staticmethod:
+
+
+   .. py:method:: get_variable_from_config_file(parser: configparser.ConfigParser, key: ConfigVariableName) -> Optional[str]
+      :staticmethod:
+
+
+   .. py:method:: set_variable_to_config_file(parser: configparser.ConfigParser, auth_path: pathlib.Path, key: ConfigVariableName, value: str) -> None
+      :staticmethod:
+
+
+   .. py:method:: remove_variable_from_config_file(parser: configparser.ConfigParser, auth_path: pathlib.Path, key: ConfigVariableName) -> None
+      :staticmethod:
+
+
+   .. py:method:: remove_all_variables_from_config_file(parser: configparser.ConfigParser, auth_path: pathlib.Path) -> None
+      :staticmethod:
+
+
+

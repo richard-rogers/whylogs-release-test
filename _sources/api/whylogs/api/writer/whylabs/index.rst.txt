@@ -1,0 +1,186 @@
+:py:mod:`whylogs.api.writer.whylabs`
+====================================
+
+.. py:module:: whylogs.api.writer.whylabs
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.writer.whylabs.WhyLabsWriter
+   whylogs.api.writer.whylabs.WhyLabsTransaction
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.writer.whylabs.logger
+
+
+.. py:data:: logger
+
+   
+
+.. py:class:: WhyLabsWriter(org_id: Optional[str] = None, api_key: Optional[str] = None, dataset_id: Optional[str] = None, api_client: Optional[whylabs_client.ApiClient] = None, ssl_ca_cert: Optional[str] = None, _timeout_seconds: Optional[float] = None, whylabs_client: Optional[whylogs.api.writer.whylabs_client.WhyLabsClient] = None)
+
+   Bases: :py:obj:`whylogs.api.writer.whylabs_base.WhyLabsWriterBase`
+
+   Base class for WhyLabs writers
+
+   .. py:property:: key_id
+      :type: str
+
+
+   .. py:method:: tag_output_columns(columns: List[str]) -> Tuple[bool, str]
+
+      Sets the list of columns as output columns for the specified dataset.
+
+      :param columns: The list of column names you want to tag as outputs.
+      :type columns: List[str]
+
+      :returns: Tuple with a boolean indicating success or failure: e.g. (True, "column prediction was updated to
+                output") and string with status message.
+      :rtype: Tuple[bool, str]
+
+
+   .. py:method:: tag_input_columns(columns: List[str]) -> Tuple[bool, str]
+
+      Sets the list of columns as input columns for the specified dataset.
+
+      :param columns: The list of column names you want to tag as inputs.
+      :type columns: List[str]
+
+      :returns: Tuple with a boolean indicating success or failure: e.g. (True, "column [output_voltage] updated to
+                input") and string with status message.
+      :rtype: Tuple[bool, str]
+
+
+   .. py:method:: tag_custom_performance_column(column: str, label: Optional[str] = None, default_metric: str = 'mean') -> Tuple[bool, str]
+
+      Sets the column as a custom performance metric for the specified dataset and org id.
+      The default metric will be displayed in the Performance tab in WhyLabs.
+
+      :param column: The column name in the whylogs profile you want to tag as a custom performance metric.
+      :type column: str
+      :param label: The label that will be displayed in WhyLabs UI. If none is passed, defaults to column name.
+      :type label: str
+      :param default_metric: The default metric that will be displayed in the Performance tab in WhyLabs.
+                             For example, "mean", "median", "max", or "min".
+                             If none is passed, defaults to "mean".
+      :type default_metric: str
+      :param Note:
+      :type Note: the resulting custom performance metric is considered an unmergeable metric.
+
+
+   .. py:method:: write_estimation_result(file: whylogs.experimental.performance_estimation.estimation_results.EstimationResult, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: write_feature_weights(file: whylogs.core.feature_weights.FeatureWeights, **kwargs: Any) -> Tuple[bool, str]
+
+      Put feature weights for the specified dataset.
+
+      :param file: FeatureWeights object representing the Feature Weights for the specified dataset
+      :type file: FeatureWeights
+
+      :returns: Tuple with a boolean (1-success, 0-fail) and string with the request's status code.
+      :rtype: Tuple[bool, str]
+
+
+   .. py:method:: get_feature_weights(**kwargs: Any) -> Optional[whylogs.core.feature_weights.FeatureWeights]
+
+      Get latest version for the feature weights for the specified dataset
+
+      :returns: Response of the GET request, with segmentWeights and metadata.
+      :rtype: FeatureWeightResponse
+
+
+   .. py:method:: start_transaction(transaction_id: Optional[str] = None) -> str
+
+      Initiates a transaction -- any profiles subsequently written by calling write()
+      will be uploaded to WhyLabs, but not ingested until commit_transaction() is called. Throws
+      on failure.
+
+      Zipped profiles are not supported
+      Reference profiles are not supported
+
+
+   .. py:method:: commit_transaction() -> None
+
+      Ingest any profiles written since the previous start_transaction().
+      Throws on failure.
+
+
+   .. py:method:: abort_transaction() -> None
+
+      Prevent the profiles uploaded in the current transaction from being
+      ingested. You still need to call commit_transaction(), but it will
+      throw a NotFoundException to indicate the transaction was unsuccessful.
+
+
+   .. py:method:: write(file: whylogs.api.writer.writer._Writable, dest: Optional[str] = None, **kwargs: Any) -> Tuple[bool, Union[str, List[Tuple[bool, str]]]]
+
+      Calls Writable::write() to serialize the Wriable `file` to temporary file(s),
+      then "sends" the temporary file(s) to `dest` according to the type of Writer.
+      If `dest` is None, it uses the Writer's default destination.
+
+      kwargs:
+          zip: bool       Create a ZipFile containing the Writable's file(s) if the Writer supports it
+          zip_name: str   Name of the ZipFile, will be auto-generated if None
+
+
+   .. py:method:: transaction_status() -> Dict[str, Any]
+
+
+   .. py:method:: check_interval(interval_seconds: int) -> None
+
+      Validate an interval configuration for a given writer.
+
+      Some writers only accepts certain interval configuration. Raise BadConfigError for
+      an unacceptable interval.
+
+
+   .. py:method:: option(**kwargs) -> whylogs.api.writer.writer.Writer
+
+      :param org_id the organization ID:
+      :param dataset_id the dataset Id:
+      :param api_key the API key:
+      :param reference_profile_name the name of the reference profile:
+      :param configuration the additional configuration for the REST client:
+      :param transaction_id to ID of currently active transaction:
+      :param org_id:
+      :type org_id: Optional[str] = None,
+      :param dataset_id:
+      :type dataset_id: Optional[str] = None,
+      :param api_key:
+      :type api_key: Optional[str] = None,
+      :param reference_profile_name:
+      :type reference_profile_name: Optional[str] = None,
+      :param configuration:
+      :type configuration: Optional[Configuration] = None,
+      :param transaction_id:
+      :type transaction_id: Optional[str] = None,
+      :param ssl_ca_cert:
+      :type ssl_ca_cert: Optional[str] = None,
+      :param api_client:
+      :type api_client: Optional[ApiClient] = None,
+      :param timeout_seconds:
+      :type timeout_seconds: Optional[float] = None,
+      :param prefer_sync:
+      :type prefer_sync: Optional[bool] = None,
+      :param Returns a "WhyLabsWriter" with these options configured:
+      :param -------:
+
+
+
+.. py:class:: WhyLabsTransaction(writer: WhyLabsWriter)
+
+

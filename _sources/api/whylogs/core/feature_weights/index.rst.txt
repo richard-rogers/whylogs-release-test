@@ -1,0 +1,54 @@
+:py:mod:`whylogs.core.feature_weights`
+======================================
+
+.. py:module:: whylogs.core.feature_weights
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.feature_weights.FeatureWeights
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.feature_weights.FeatureWeightWriter
+
+
+.. py:class:: FeatureWeights(weights: Dict[str, float], segment: Optional[whylogs.core.Segment] = None, metadata: Optional[Dict] = None)
+
+   Bases: :py:obj:`whylogs.api.writer.writer._Writable`
+
+   A Writable is an object that contains data to write to a file or files.
+   These might be temporary files intended to be passed on to another
+   consumer (e.g., WhyLabs servers) via a Writer.
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: to_json() -> str
+
+
+   .. py:method:: to_dict() -> Dict[str, Union[Optional[whylogs.core.Segment], Optional[float]]]
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+
+.. py:data:: FeatureWeightWriter
+
+   
+

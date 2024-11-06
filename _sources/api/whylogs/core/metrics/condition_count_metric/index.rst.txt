@@ -1,0 +1,282 @@
+:py:mod:`whylogs.core.metrics.condition_count_metric`
+=====================================================
+
+.. py:module:: whylogs.core.metrics.condition_count_metric
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.metrics.condition_count_metric.Condition
+   whylogs.core.metrics.condition_count_metric.ConditionCountConfig
+   whylogs.core.metrics.condition_count_metric.ConditionCountMetric
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.metrics.condition_count_metric.relation
+   whylogs.core.metrics.condition_count_metric.and_relations
+   whylogs.core.metrics.condition_count_metric.or_relations
+   whylogs.core.metrics.condition_count_metric.not_relation
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.metrics.condition_count_metric.logger
+   whylogs.core.metrics.condition_count_metric.Relation
+
+
+.. py:data:: logger
+
+   
+
+.. py:data:: Relation
+
+   
+
+.. py:function:: relation(op: Relation, value: Union[str, int, float]) -> Callable[[Any], bool]
+
+
+.. py:function:: and_relations(left: Callable[[Any], bool], right: Callable[[Any], bool]) -> Callable[[Any], bool]
+
+
+.. py:function:: or_relations(left: Callable[[Any], bool], right: Callable[[Any], bool]) -> Callable[[Any], bool]
+
+
+.. py:function:: not_relation(relation: Callable[[Any], bool]) -> Callable[[Any], bool]
+
+
+.. py:class:: Condition
+
+   Condition to be evaluated by the ConditionCountMetric.
+
+   :param relation: The predicate to evaluate. The callable is passed a value from the column the
+                    ConditionCountMetric is attached to, and returns True if the value satisfies
+                    the condition.
+   :type relation: Callable[[Any], bool]
+   :param throw_on_failure: If throw_on_failure is true, whylogs will immediately raise a ValueError if
+                            data that does not satisfy the condition is logged.
+   :type throw_on_failure: bool
+   :param log_on_failure: If log_on_failure is true, whylogs will log a warning message if data that does not
+                          satisfy the conditon is logged.
+   :type log_on_failure: bool
+   :param actions: A list of callables that will be invoked if data that does not satisfy the conditon
+                   is logged. The arguments passed to the callable are the metric's name ("condition_count"),
+                   the name of the failed condition, and the value that caused the failure.
+   :type actions: List[Callable[[str, str, Any], None]]
+
+   .. py:attribute:: relation
+      :type: Callable[[Any], bool]
+
+      
+
+   .. py:attribute:: throw_on_failure
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: log_on_failure
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: actions
+      :type: List[Callable[[str, str, Any], None]]
+
+      
+
+
+.. py:class:: ConditionCountConfig
+
+   Bases: :py:obj:`whylogs.core.metrics.metrics.MetricConfig`
+
+   .. py:attribute:: conditions
+      :type: Dict[str, Condition]
+
+      
+
+   .. py:attribute:: exclude_from_serialization
+      :type: bool
+      :value: False
+
+      
+
+   .. py:attribute:: hll_lg_k
+      :type: int
+
+      
+
+   .. py:attribute:: kll_k
+      :type: int
+
+      
+
+   .. py:attribute:: fi_lg_max_k
+      :type: int
+
+      
+
+   .. py:attribute:: fi_disabled
+      :type: bool
+
+      
+
+   .. py:attribute:: track_unicode_ranges
+      :type: bool
+
+      
+
+   .. py:attribute:: large_kll_k
+      :type: bool
+
+      
+
+   .. py:attribute:: kll_k_large
+      :type: int
+
+      
+
+   .. py:attribute:: unicode_ranges
+      :type: Dict[str, Tuple[int, int]]
+
+      
+
+   .. py:attribute:: lower_case
+      :type: bool
+
+      
+
+   .. py:attribute:: normalize
+      :type: bool
+
+      
+
+   .. py:attribute:: max_frequent_item_size
+      :type: int
+
+      
+
+   .. py:attribute:: identity_column
+      :type: Optional[str]
+
+      
+
+
+.. py:class:: ConditionCountMetric
+
+   Bases: :py:obj:`whylogs.core.metrics.metrics.Metric`
+
+   A whylogs metric that counts how many column entries satisfy a condition.
+
+   :param conditions: The conditions evaluated by the metric. The key is the condition name, and the
+                      Condition value specifies the Callable condition predicate to evaluate & count.
+   :type conditions: Dict[str, Condition]
+
+   .. rubric:: Examples
+
+   This example counts the occurrances of email addresses in the `some_text` column and
+   credit card numbers in the `more_text` column.
+
+   ```
+   import pandas as pd
+   import whylogs as why
+   from whylogs.core.resolvers import STANDARD_RESOLVER
+   from whylogs.core.specialized_resolvers import ConditionCountMetricSpec
+   from whylogs.core.metrics.condition_count_metric import Condition
+   from whylogs.core.relations import Predicate
+   from whylogs.core.schema import DeclarativeSchema
+
+   email_condition = {"contiansEmail": Condition(Predicate().fullmatch("[\w.]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}"))}
+   cc_condition = {"containsCreditCard": Condition(Predicate().matches(".*4[0-9]{12}(?:[0-9]{3})?"))}
+
+   schema = DeclarativeSchema(STANDARD_RESOLVER)
+   schema.add_resolver_spec(column_name="some_text", metrics=[ConditionCountMetricSpec(email_condition)])
+   schema.add_resolver_spec(column_name="more_text", metrics=[ConditionCountMetricspec(cc_condition)])
+
+   df = pd.DataFrame({"some_text": ["not an email", "bob@spam.com"], "more_text": ["frogs", "4000000000000"]})
+   view = why.log(df).view()
+   view.to_pandas()[['condition_count/containsEmail', 'condition_count/containsCreditCard', 'condition_count/total']]
+
+   # results in
+
+              condition_count/containsEmail   condition_count/containsCreditCard      condition_count/total
+   column
+   some_text                            1.0                                  NaN                          2
+   more_text                            NaN                                  1.0                          2
+   ```
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:attribute:: conditions
+      :type: Dict[str, Condition]
+
+      
+
+   .. py:attribute:: total
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: matches
+      :type: Dict[str, whylogs.core.metrics.metric_components.IntegralComponent]
+
+      
+
+   .. py:attribute:: hide_from_serialization
+      :type: bool
+      :value: False
+
+      
+
+   .. py:method:: merge(other: ConditionCountMetric) -> ConditionCountMetric
+
+
+   .. py:method:: add_conditions(conditions: Dict[str, Condition]) -> None
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> whylogs.core.metrics.metrics.OperationResult
+
+
+   .. py:method:: zero(config: Optional[whylogs.core.metrics.metrics.MetricConfig] = None) -> ConditionCountMetric
+      :classmethod:
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> ConditionCountMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+

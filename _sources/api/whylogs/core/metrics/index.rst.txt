@@ -1,0 +1,855 @@
+:py:mod:`whylogs.core.metrics`
+==============================
+
+.. py:module:: whylogs.core.metrics
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   aggregators/index.rst
+   column_metrics/index.rst
+   compound_metric/index.rst
+   condition_count_metric/index.rst
+   decorators/index.rst
+   deserializers/index.rst
+   maths/index.rst
+   metric_components/index.rst
+   metrics/index.rst
+   multimetric/index.rst
+   serializers/index.rst
+   unicode_range/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.core.metrics.ColumnCountsMetric
+   whylogs.core.metrics.TypeCountersMetric
+   whylogs.core.metrics.ConditionCountMetric
+   whylogs.core.metrics.CardinalityMetric
+   whylogs.core.metrics.DistributionMetric
+   whylogs.core.metrics.FrequentItemsMetric
+   whylogs.core.metrics.IntsMetric
+   whylogs.core.metrics.Metric
+   whylogs.core.metrics.MetricConfig
+   whylogs.core.metrics.UnicodeRangeMetric
+   whylogs.core.metrics.StandardMetric
+
+
+
+
+.. py:class:: ColumnCountsMetric
+
+   Bases: :py:obj:`whylogs.core.metrics.metrics.Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: n
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: null
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: nan
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: inf
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: true
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> whylogs.core.metrics.metrics.OperationResult
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: zero(config: Optional[whylogs.core.metrics.metrics.MetricConfig] = None) -> ColumnCountsMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: TypeCountersMetric
+
+   Bases: :py:obj:`whylogs.core.metrics.metrics.Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: integral
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: fractional
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: boolean
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: string
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: object
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: tensor
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> whylogs.core.metrics.metrics.OperationResult
+
+
+   .. py:method:: zero(config: Optional[whylogs.core.metrics.metrics.MetricConfig] = None) -> TypeCountersMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: ConditionCountMetric
+
+   Bases: :py:obj:`whylogs.core.metrics.metrics.Metric`
+
+   A whylogs metric that counts how many column entries satisfy a condition.
+
+   :param conditions: The conditions evaluated by the metric. The key is the condition name, and the
+                      Condition value specifies the Callable condition predicate to evaluate & count.
+   :type conditions: Dict[str, Condition]
+
+   .. rubric:: Examples
+
+   This example counts the occurrances of email addresses in the `some_text` column and
+   credit card numbers in the `more_text` column.
+
+   ```
+   import pandas as pd
+   import whylogs as why
+   from whylogs.core.resolvers import STANDARD_RESOLVER
+   from whylogs.core.specialized_resolvers import ConditionCountMetricSpec
+   from whylogs.core.metrics.condition_count_metric import Condition
+   from whylogs.core.relations import Predicate
+   from whylogs.core.schema import DeclarativeSchema
+
+   email_condition = {"contiansEmail": Condition(Predicate().fullmatch("[\w.]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}"))}
+   cc_condition = {"containsCreditCard": Condition(Predicate().matches(".*4[0-9]{12}(?:[0-9]{3})?"))}
+
+   schema = DeclarativeSchema(STANDARD_RESOLVER)
+   schema.add_resolver_spec(column_name="some_text", metrics=[ConditionCountMetricSpec(email_condition)])
+   schema.add_resolver_spec(column_name="more_text", metrics=[ConditionCountMetricspec(cc_condition)])
+
+   df = pd.DataFrame({"some_text": ["not an email", "bob@spam.com"], "more_text": ["frogs", "4000000000000"]})
+   view = why.log(df).view()
+   view.to_pandas()[['condition_count/containsEmail', 'condition_count/containsCreditCard', 'condition_count/total']]
+
+   # results in
+
+              condition_count/containsEmail   condition_count/containsCreditCard      condition_count/total
+   column
+   some_text                            1.0                                  NaN                          2
+   more_text                            NaN                                  1.0                          2
+   ```
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:attribute:: conditions
+      :type: Dict[str, Condition]
+
+      
+
+   .. py:attribute:: total
+      :type: whylogs.core.metrics.metric_components.IntegralComponent
+
+      
+
+   .. py:attribute:: matches
+      :type: Dict[str, whylogs.core.metrics.metric_components.IntegralComponent]
+
+      
+
+   .. py:attribute:: hide_from_serialization
+      :type: bool
+      :value: False
+
+      
+
+   .. py:method:: merge(other: ConditionCountMetric) -> ConditionCountMetric
+
+
+   .. py:method:: add_conditions(conditions: Dict[str, Condition]) -> None
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> whylogs.core.metrics.metrics.OperationResult
+
+
+   .. py:method:: zero(config: Optional[whylogs.core.metrics.metrics.MetricConfig] = None) -> ConditionCountMetric
+      :classmethod:
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> ConditionCountMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+
+.. py:class:: CardinalityMetric
+
+   Bases: :py:obj:`Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: estimate
+      :type: Optional[float]
+
+
+   .. py:property:: upper_1
+      :type: Optional[float]
+
+
+   .. py:property:: lower_1
+      :type: Optional[float]
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: hll
+      :type: whylogs.core.metrics.metric_components.HllComponent
+
+      
+
+   .. py:method:: columnar_update(view: whylogs.core.preprocessing.PreprocessedColumn) -> OperationResult
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: get_upper_bound(number_of_standard_deviations: int) -> Optional[float]
+
+
+   .. py:method:: get_lower_bound(number_of_standard_deviations: int) -> Optional[float]
+
+
+   .. py:method:: zero(config: Optional[MetricConfig] = None) -> CardinalityMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: DistributionMetric
+
+   Bases: :py:obj:`Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: n
+      :type: float
+
+
+   .. py:property:: variance
+      :type: float
+
+      Returns the sample variance of the stream.
+
+      https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+
+   .. py:property:: stddev
+      :type: float
+
+
+   .. py:property:: avg
+      :type: float
+
+
+   .. py:property:: median
+      :type: Optional[float]
+
+
+   .. py:property:: q_01
+      :type: Optional[float]
+
+
+   .. py:property:: q_05
+      :type: Optional[float]
+
+
+   .. py:property:: q_10
+      :type: Optional[float]
+
+
+   .. py:property:: q_25
+      :type: Optional[float]
+
+
+   .. py:property:: q_75
+      :type: Optional[float]
+
+
+   .. py:property:: q_90
+      :type: Optional[float]
+
+
+   .. py:property:: q_95
+      :type: Optional[float]
+
+
+   .. py:property:: q_99
+      :type: Optional[float]
+
+
+   .. py:property:: max
+      :type: float
+
+
+   .. py:property:: min
+      :type: float
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: kll
+      :type: whylogs.core.metrics.metric_components.KllComponent
+
+      
+
+   .. py:attribute:: mean
+      :type: whylogs.core.metrics.metric_components.FractionalComponent
+
+      
+
+   .. py:attribute:: m2
+      :type: whylogs.core.metrics.metric_components.FractionalComponent
+
+      
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Union[int, float, str, None]]
+
+
+   .. py:method:: columnar_update(view: whylogs.core.preprocessing.PreprocessedColumn) -> OperationResult
+
+      Update the operation
+
+      Algorithm: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+
+      :param view: the preprocessed column
+
+      :returns: how many successful operations we had
+
+
+   .. py:method:: merge(other: DistributionMetric) -> DistributionMetric
+
+
+   .. py:method:: get_quantile(quantile: float) -> Optional[float]
+
+
+   .. py:method:: zero(config: Optional[MetricConfig] = None) -> DistributionMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: FrequentItemsMetric
+
+   Bases: :py:obj:`Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: strings
+      :type: List[FrequentItem]
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: frequent_strings
+      :type: whylogs.core.metrics.metric_components.FrequentStringsComponent
+
+      
+
+   .. py:attribute:: max_frequent_item_size
+      :type: int
+      :value: 128
+
+      
+
+   .. py:method:: columnar_update(view: whylogs.core.preprocessing.PreprocessedColumn) -> OperationResult
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: zero(config: Optional[MetricConfig] = None) -> FrequentItemsMetric
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: IntsMetric
+
+   Bases: :py:obj:`Metric`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: maximum
+      :type: float
+
+
+   .. py:property:: minimum
+      :type: float
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: max
+      :type: whylogs.core.metrics.metric_components.MaxIntegralComponent
+
+      
+
+   .. py:attribute:: min
+      :type: whylogs.core.metrics.metric_components.MinIntegralComponent
+
+      
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> OperationResult
+
+
+   .. py:method:: zero(config: Optional[MetricConfig] = None) -> IntsMetric
+      :classmethod:
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Union[int, float, str, None]]
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: Metric
+
+   Bases: :py:obj:`abc.ABC`
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:property:: namespace
+      :type: str
+      :abstractmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+   .. py:method:: merge(other: METRIC) -> METRIC
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+      :abstractmethod:
+
+
+   .. py:method:: columnar_update(data: whylogs.core.preprocessing.PreprocessedColumn) -> OperationResult
+      :abstractmethod:
+
+
+   .. py:method:: zero(config: Optional[MetricConfig] = None) -> METRIC
+      :classmethod:
+      :abstractmethod:
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> METRIC
+      :classmethod:
+
+
+
+.. py:class:: MetricConfig
+
+   .. py:attribute:: hll_lg_k
+      :type: int
+
+      
+
+   .. py:attribute:: kll_k
+      :type: int
+
+      
+
+   .. py:attribute:: fi_lg_max_k
+      :type: int
+
+      
+
+   .. py:attribute:: fi_disabled
+      :type: bool
+
+      
+
+   .. py:attribute:: track_unicode_ranges
+      :type: bool
+
+      
+
+   .. py:attribute:: large_kll_k
+      :type: bool
+
+      
+
+   .. py:attribute:: kll_k_large
+      :type: int
+
+      
+
+   .. py:attribute:: unicode_ranges
+      :type: Dict[str, Tuple[int, int]]
+
+      
+
+   .. py:attribute:: lower_case
+      :type: bool
+
+      
+
+   .. py:attribute:: normalize
+      :type: bool
+
+      
+
+   .. py:attribute:: max_frequent_item_size
+      :type: int
+
+      
+
+   .. py:attribute:: identity_column
+      :type: Optional[str]
+
+      
+
+
+.. py:class:: UnicodeRangeMetric(submetrics: Dict[str, Dict[str, whylogs.core.metrics.Metric]])
+
+   Bases: :py:obj:`whylogs.core.metrics.multimetric.MultiMetric`
+
+   For string values, maintains a DistributionMetric for the counts of
+   characters that fall within user-defined codepoint ranges.
+
+   Parameters
+    ----------
+    range_definitions : Dict[str, Tuple[int, int]]
+        Defines the character ranges to be counted. The key servers as
+        the range name and should only contain alphanumeric, hyphen, and
+        underscore characters. The tuple defines the Unicode codepoint
+        range to be tracked. The string length is tracked under the key
+        "STRING_LENGTH" so don't use that as a range name.
+
+   .. py:property:: namespace
+      :type: str
+
+
+   .. py:property:: exclude_from_serialization
+      :type: bool
+
+
+   .. py:attribute:: range_definitions
+      :type: Dict[str, Tuple[int, int]]
+
+      
+
+   .. py:attribute:: lower_case
+      :type: bool
+      :value: True
+
+      
+
+   .. py:attribute:: normalize
+      :type: bool
+      :value: True
+
+      
+
+   .. py:attribute:: submetrics
+      :type: Dict[str, Dict[str, whylogs.core.metrics.Metric]]
+
+      
+
+   .. py:method:: merge(other: UnicodeRangeMetric) -> UnicodeRangeMetric
+
+
+   .. py:method:: columnar_update(view: whylogs.core.preprocessing.PreprocessedColumn) -> whylogs.core.metrics.metrics.OperationResult
+
+
+   .. py:method:: zero(config: Optional[whylogs.core.metrics.metrics.MetricConfig] = None) -> UnicodeRangeMetric
+      :classmethod:
+
+
+   .. py:method:: from_protobuf(msg: whylogs.core.proto.MetricMessage) -> UnicodeRangeMetric
+      :classmethod:
+
+
+   .. py:method:: merge_submetrics(other: MULTI_METRIC) -> Dict[str, Dict[str, whylogs.core.metrics.Metric]]
+
+
+   .. py:method:: to_protobuf() -> whylogs.core.proto.MetricMessage
+
+
+   .. py:method:: get_component_paths() -> List[str]
+
+
+   .. py:method:: to_summary_dict(cfg: Optional[whylogs.core.configs.SummaryConfig] = None) -> Dict[str, Any]
+
+
+   .. py:method:: submetrics_from_protobuf(msg: whylogs.core.proto.MetricMessage) -> Dict[str, Dict[str, whylogs.core.metrics.Metric]]
+      :classmethod:
+
+
+   .. py:method:: get_namespace(config: Optional[MetricConfig] = None) -> str
+      :classmethod:
+
+
+
+.. py:class:: StandardMetric(clz: metrics.Metric)
+
+   Bases: :py:obj:`enum.Enum`
+
+   Generic enumeration.
+
+   Derive from this class to define new enumerations.
+
+   .. py:attribute:: types
+
+      
+
+   .. py:attribute:: distribution
+
+      
+
+   .. py:attribute:: counts
+
+      
+
+   .. py:attribute:: ints
+
+      
+
+   .. py:attribute:: cardinality
+
+      
+
+   .. py:attribute:: frequent_items
+
+      
+
+   .. py:attribute:: unicode_range
+
+      
+
+   .. py:attribute:: condition_count
+
+      
+
+   .. py:method:: zero(config: Optional[metrics.MetricConfig] = None) -> metrics.Metric
+
+
+   .. py:method:: name()
+
+      The name of the Enum member.
+
+
+   .. py:method:: value()
+
+      The value of the Enum member.
+
+
+

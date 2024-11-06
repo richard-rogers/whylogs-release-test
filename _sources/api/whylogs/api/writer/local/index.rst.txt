@@ -1,0 +1,65 @@
+:py:mod:`whylogs.api.writer.local`
+==================================
+
+.. py:module:: whylogs.api.writer.local
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.writer.local.LocalWriter
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.api.writer.local.logger
+
+
+.. py:data:: logger
+
+   
+
+.. py:class:: LocalWriter(base_dir: Optional[str] = None, base_name: Optional[str] = None)
+
+   Bases: :py:obj:`whylogs.api.writer.Writer`
+
+   Writes Writable to local files. By default, this just returns the files created in the
+   current working directory by the Writable itself. This can be overriden by specifying
+   `base_dir` or `base_name` via the constructor or option().
+
+   The Writable optionally can be written to a ZipFile.
+
+   .. py:method:: write(file: whylogs.api.writer.writer._Writable, dest: Optional[str] = None, **kwargs: Any) -> Tuple[bool, Union[str, List[Tuple[bool, str]]]]
+
+      kwargs:
+         base_dir: str    Directory to write to
+         base_name: str   File name to write to
+         zip: bool       Create a ZipFile containing the Writable's file(s) if the Writer supports it
+         zip_name: str   Name of the ZipFile, will be auto-generated if None
+
+
+   .. py:method:: option(**kwargs: Any) -> whylogs.api.writer.Writer
+
+      base_dir: str    Directory to write to
+      base_name: str   File name to write to
+
+
+   .. py:method:: check_interval(interval_seconds: int) -> None
+
+      Validate an interval configuration for a given writer.
+
+      Some writers only accepts certain interval configuration. Raise BadConfigError for
+      an unacceptable interval.
+
+
+

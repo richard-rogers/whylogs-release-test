@@ -1,0 +1,46 @@
+:py:mod:`whylogs.viz.extensions.reports.constraints`
+====================================================
+
+.. py:module:: whylogs.viz.extensions.reports.constraints
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.viz.extensions.reports.constraints.ConstraintsReport
+
+
+
+
+.. py:class:: ConstraintsReport(ref_view: Optional[whylogs.DatasetProfileView] = None, target_view: Optional[whylogs.DatasetProfileView] = None, height: Optional[str] = None)
+
+   Bases: :py:obj:`whylogs.viz.extensions.reports.html_report.HTMLReport`
+
+   A Writable is an object that contains data to write to a file or files.
+   These might be temporary files intended to be passed on to another
+   consumer (e.g., WhyLabs servers) via a Writer.
+
+   .. py:method:: display(template: str, page_spec: whylogs.viz.enums.enums.PageSpec) -> IPython.core.display.HTML
+
+
+   .. py:method:: report() -> IPython.core.display.HTML
+      :abstractmethod:
+
+
+   .. py:method:: option()
+
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+

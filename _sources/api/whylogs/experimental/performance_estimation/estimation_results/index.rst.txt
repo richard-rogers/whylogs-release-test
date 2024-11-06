@@ -1,0 +1,54 @@
+:py:mod:`whylogs.experimental.performance_estimation.estimation_results`
+========================================================================
+
+.. py:module:: whylogs.experimental.performance_estimation.estimation_results
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.experimental.performance_estimation.estimation_results.EstimationResult
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   whylogs.experimental.performance_estimation.estimation_results.logger
+   whylogs.experimental.performance_estimation.estimation_results.EstimationResultWriter
+
+
+.. py:data:: logger
+
+   
+
+.. py:class:: EstimationResult(accuracy: float, reference_partition_id: Optional[str] = None, reference_result_timestamp: Optional[datetime.datetime] = None, target_result_timestamp: Optional[datetime.datetime] = None)
+
+   Bases: :py:obj:`whylogs.api.writer._Writable`
+
+   The result of a performance estimation.
+   accuracy: The estimated accuracy.
+   reference_partition_id: The partition id of the reference result set.
+   reference_result_timestamp: The timestamp of the reference result set.
+
+   .. py:method:: write(path: Optional[str] = None, **kwargs: Any) -> Tuple[bool, str]
+
+
+   .. py:method:: writer(name: str = 'local', **kwargs: Any) -> WriterWrapper
+
+      Utility method to create a Writer of the specified type
+
+
+
+.. py:data:: EstimationResultWriter
+
+   
+
