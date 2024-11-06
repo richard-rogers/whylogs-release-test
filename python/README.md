@@ -6,10 +6,6 @@
 
 
 
-
-
-
-
 <h1 align="center">The open standard for data logging
 
  </h1>
