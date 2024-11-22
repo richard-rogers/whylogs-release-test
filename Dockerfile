@@ -9,7 +9,7 @@ ENV LANGUAGE=C.UTF-8
 
 ARG uid
 ARG username
-ARG useremail
+ARG  useremail
 
 # cd whylogs
 # docker build -t whylogs --build-arg uid=$UID --build-arg username="Jane Smith" --build-arg useremail=jsmith@isp.com -f Dockerfile .
